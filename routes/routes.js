@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.js");
 const keygen = require("keygenerator");
 const passport = require("passport");
+const user_auth = require("../controllers/user_authentication");
+const otpGenerator = require("otp-generator");
 
 const key = "dZ9rcjxB2X45MXobcgPNEXgmPjHpfsVi";
 app.post('/signup', (req, res, next) => {
@@ -63,21 +65,38 @@ app.post('/signup', (req, res, next) => {
             });
           }
           if (result) {
+            const user_email = user[0].email;
+            const userId = user[0]._id;
             const token = jwt.sign(
               {
-                email: user[0].email,
-                userId: user[0]._id
+                email: user_email,
+                userId: userId
               },
               key,
               {
                 expiresIn: "1h"
               }
             );
-            return res.status(200).json({
-              message: "Auth successful",
+            const otp_token = jwt.sign(
+              {
+                email: user_email,
+                userId:  userId
+              },
+              key,
+              {
+                expiresIn: "15m"
+              }
+            );
+          //  const otp_token = otpGen.generate(6, {digits:true, upperCase: false, specialChars: false, alphabets: false });  
+          const OTP_GEN = user_auth.generateOTP();
+          user_auth.sendmailOTP(user_email,OTP_GEN)
+          return res.status(200).json({
+              message: "Authentication successful",
               token: "Bearer "+ token,
-              key:key
+              otp_token: "Bearer "+ otp_token,
+              OTP:OTP_GEN
             });
+           
           }
           res.status(401).json({
             message: "Auth failed"
@@ -93,5 +112,96 @@ app.post('/signup', (req, res, next) => {
   });
   app.get('/protected',passport.authenticate("jwt", {session: false}),(req, res) =>{
     res.send("Protected route");
+});
+app.post('/forgot-password',(req, res)=>{
+  //find user
+  User.find({ email: req.body.email })
+  .exec()
+  .then(user => {
+    if (user.length < 1) {
+      return res.status(401).json({
+        message: "Email does not exist"
+      });
+    }
+  //create a JWT token
+  const secret = key;
+  const user_email = user[0].email;
+  const userId = user[0]._id;
+    const payload = {
+        email:user_email,
+        id:userId
+    }
+    const token = jwt.sign(payload, secret, {expiresIn: '15m'});
+    const link = `http://localhost:3000/reset-passord/${user[0]._id}/${token}`;
+    user_auth.sendResetLink(user_email,link);
+    res.status(200).json({
+      link: link
+    });
+    
+    //console.log(link);
+    //res.send('Password reset link')
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({
+      error: err
+    });
+  });
+});
+app.post('/reset-password',(req, res)=>{
+  const id = req.body.id;
+  try{
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, key);
+    req.userData = decoded;
+    console.log(decoded)
+    bcrypt.hash(req.body.password, 10, (err, hash) => {
+      if (err) {
+        return res.status(500).json({
+          error: err
+        });
+      } else {
+        User.findByIdAndUpdate({_id:id},{"password": hash}, function(err, result){
+  
+          if(err){
+              res.send(err)
+          }
+          else{
+             res.send({
+              result,
+              message:"Reset password successful!"
+             }
+              )
+          }
+      });
+      }
+  
+    });
+   }
+   catch{
+    (err)=>{
+      console.log(err);
+    }
+   }
+
+});
+app.post('/otp',(req, res)=>{
+  try{
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, key);
+    req.userData = decoded;
+    console.log(decoded)
+    res.status.json(
+      {
+        "message":"OTP success",
+        "status":"success"
+      }
+    );
+  }
+  catch{
+    (err)=>{
+      console.log(err);
+    }
+  }
 });
   module.exports = app;
