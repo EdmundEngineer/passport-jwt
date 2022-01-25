@@ -70,7 +70,7 @@ app.post('/signup', (req, res, next) => {
             const token = jwt.sign(
               {
                 email: user_email,
-                userId: userId
+                userId: userId,
               },
               key,
               {
@@ -89,13 +89,14 @@ app.post('/signup', (req, res, next) => {
             );
           //  const otp_token = otpGen.generate(6, {digits:true, upperCase: false, specialChars: false, alphabets: false });  
           const OTP_GEN = user_auth.generateOTP();
-          user_auth.sendmailOTP(user_email,OTP_GEN)
+          user_auth.sendmailOTP(user_email,OTP_GEN);
           return res.status(200).json({
               message: "Authentication successful",
               token: "Bearer "+ token,
               otp_token: "Bearer "+ otp_token,
               OTP:OTP_GEN
             });
+           
            
           }
           res.status(401).json({
@@ -135,7 +136,8 @@ app.post('/forgot-password',(req, res)=>{
     const link = `http://localhost:3000/reset-passord/${user[0]._id}/${token}`;
     user_auth.sendResetLink(user_email,link);
     res.status(200).json({
-      link: link
+      link: link,
+      token: "Bearer "+ token,
     });
     
     //console.log(link);
@@ -161,12 +163,14 @@ app.post('/reset-password',(req, res)=>{
           error: err
         });
       } else {
-        User.findByIdAndUpdate({_id:id},{"password": hash}, function(err, result){
+        User.findByIdAndUpdate({_id:decoded.id},{"password": hash}, function(err, result){
   
           if(err){
+            console.log(err);
               res.send(err)
           }
           else{
+            console.log(result)
              res.send({
               result,
               message:"Reset password successful!"
@@ -191,7 +195,7 @@ app.post('/otp',(req, res)=>{
     const decoded = jwt.verify(token, key);
     req.userData = decoded;
     console.log(decoded)
-    res.status.json(
+    res.status(200).json(
       {
         "message":"OTP success",
         "status":"success"
@@ -201,7 +205,52 @@ app.post('/otp',(req, res)=>{
   catch{
     (err)=>{
       console.log(err);
+      res.status(500).json(
+        {
+          "message":"OTP failed",
+          "status":"failed"
+        }
+      );
     }
   }
+});
+app.post('/otpResend',(req, res)=>{
+  
+User.find({ email: req.body.email })
+.exec()
+.then(user => {
+  if (user.length < 1) {
+    return res.status(401).json({
+      message: "Auth failed"
+    });
+  }
+  const user_email = user[0].email;
+  const userId = user[0]._id;
+  const secret = key;
+  const OTP_GEN = user_auth.generateOTP();
+  const payload = {
+    email:user_email,
+    id:userId
+}
+const otp_token = jwt.sign(payload, secret, {expiresIn: '1m'});
+user_auth.sendmailOTP(user_email,OTP_GEN);
+res.status(200).json({
+  message: "OTP sent successful",
+  otp_token: "Bearer "+ otp_token,
+  OTP:OTP_GEN
+});
+})
+.catch(
+  (err)=>{
+    console.log(err);
+    res.status(500).json(
+      {
+        "message":"OTP failed",
+        "status":"failed"
+      }
+    );
+  }
+
+);
 });
   module.exports = app;

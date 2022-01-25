@@ -7,7 +7,7 @@ const port = process.env.PORT || 3000;
 const passport = require("passport");
 require("./config/passport");
 
-mongoose.connect('mongodb://127.0.0.1:27017/passport-jwt', {
+mongoose.connect('mongodb://127.0.0.1:27017/paylend_2_0', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
@@ -33,7 +33,7 @@ mongoose.connection.on('error', error => console.log(error) );
   const sampleRoutes = require("./routes/routes");
   const protectedRoutes = require("./routes/protected");
   app.use("",sampleRoutes);
-  app.use("/protected",protectedRoutes);
+  //app.use("/protected",protectedRoutes);
   app.use((req, res, next) => {
     const error = new Error("Not found");
     error.status = 404;
