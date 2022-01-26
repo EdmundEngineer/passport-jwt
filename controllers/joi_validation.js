@@ -1,22 +1,23 @@
 const Joi = require('joi');
-exports.validateSignUp = (mail, password_sent, next) => {
+exports.validateSignUp = (mail, password_sent) => {
     const schema = Joi.object({      
         email: Joi.string()
-            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
+            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'africa'] } }).required(),
         password: Joi.string()
             .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required()
     }).with('email', 'password');
-    
+ 
     try {
         const value =  schema.validateAsync({ email: mail, password: password_sent  });
-        //return value;
-        next();
+       return value;
+        
     }
     catch (err) { 
-        return err;
+      // return err;
+        
     }
 }
-exports.validateSignIn = (mail, password_sent, next) => {
+exports.validateSignIn = (mail, password_sent) => {
     const schema = Joi.object({      
         email: Joi.string()
             .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
@@ -32,7 +33,7 @@ exports.validateSignIn = (mail, password_sent, next) => {
         return err;
     }
 }
-exports.validateForgot = (mail, next) => {
+exports.validateForgot = (mail) => {
     const schema = Joi.object({      
         email: Joi.string()
             .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required()
@@ -46,7 +47,7 @@ exports.validateForgot = (mail, next) => {
         return err;
     }
 }
-exports.validateReset = (password1, password2, next) => {
+exports.validateReset = (password1, password2) => {
     const schema = Joi.object({      
         password: Joi.string()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
@@ -62,7 +63,7 @@ exports.validateReset = (password1, password2, next) => {
         return err;
     }
 }
-exports.validateOtp = (otp_sent, next) => {
+exports.validateOtp = (otp_sent) => {
     const schema = Joi.object({  
           
         otp:  Joi.string()

@@ -9,11 +9,21 @@ const passport = require("passport");
 const user_auth = require("../controllers/user_authentication");
 const otpDB = require("../controllers/otp");
 const otpGenerator = require("otp-generator");
-const joi_validation = require("../controllers/joi_validation");
+const validate = require("../controllers/joi_validation");
 
 const key = "dZ9rcjxB2X45MXobcgPNEXgmPjHpfsVi";
-app.post('/signup', (req, res, next) => {
-    User.find({ email: req.body.email })
+app.post('/signup', (req, res) => {
+    
+    const payload = {
+     "email":"",
+     "password":""
+    };
+    payload.email  = req.body.email;
+    payload.password = req.body.password;
+   
+    const validated = validate.validateSignUp(req.body.email, req.body.password);
+    if(validated){
+      User.find({ email: req.body.email })
       .exec()
       .then(user => {
         if (user.length >= 1) {
@@ -50,8 +60,17 @@ app.post('/signup', (req, res, next) => {
           });
         }
       });
+    }
+    else{
+      // 
+      res.status(200).json({message:"not successful"});
+    }
+
+    
   });
   app.post('/signin',(req, res, next) => {
+    const validated = validate.validateSignIn(req.body.email, req.body.password);
+    if(validated){
     User.find({ email: req.body.email })
       .exec()
       .then(user => {
@@ -118,12 +137,19 @@ app.post('/signup', (req, res, next) => {
           error: err
         });
       });
+    }
+    else{
+       
+      res.status(200).json({message:"not successful"});
+    }
   });
   app.get('/protected',passport.authenticate("jwt", {session: false}),(req, res) =>{
-    res.send("Protected route");
+    res.send("Accessed Protected route");
 });
 app.post('/forgot-password',(req, res)=>{
-  //find user
+  const validated = validate.validateForgot(req.body.email);
+  if(validated){
+     //find user
   User.find({ email: req.body.email })
   .exec()
   .then(user => {
@@ -157,74 +183,97 @@ app.post('/forgot-password',(req, res)=>{
       error: err
     });
   });
+  }
+  else{
+     
+    res.status(200).json({message:"not successful"});
+  }
+ 
 });
 app.post('/reset-password',(req, res)=>{
-  const id = req.body.id;
-  try{
-    const token = req.headers.authorization.split(" ")[1];
-    const decoded = jwt.verify(token, key);
-    req.userData = decoded;
-    console.log(decoded)
-    bcrypt.hash(req.body.password, 10, (err, hash) => {
-      if (err) {
-        return res.status(500).json({
-          error: err
+  const validated = validate.validateReset(req.body.password,req.body.confirm_password);
+  if(validated){
+    try{
+      const token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, key);
+      req.userData = decoded;
+      console.log(decoded)
+      bcrypt.hash(req.body.password, 10, (err, hash) => {
+        if (err) {
+          return res.status(500).json({
+            error: err
+          });
+        } else {
+          User.findByIdAndUpdate({_id:decoded.id},{"password": hash}, function(err, result){
+    
+            if(err){
+              console.log(err);
+                res.send(err)
+            }
+            else{
+              console.log(result)
+               res.send({
+                result,
+                message:"Reset password successful!"
+               }
+                )
+            }
         });
-      } else {
-        User.findByIdAndUpdate({_id:decoded.id},{"password": hash}, function(err, result){
-  
-          if(err){
-            console.log(err);
-              res.send(err)
-          }
-          else{
-            console.log(result)
-             res.send({
-              result,
-              message:"Reset password successful!"
-             }
-              )
-          }
+        }
+    
       });
+     }
+     catch{
+      (err)=>{
+        console.log(err);
       }
-  
-    });
-   }
-   catch{
-    (err)=>{
-      console.log(err);
-    }
-   }
+     }
+  }
+  else{
+     
+    res.status(200).json({message:"not successful"});
+  }
+ 
+
 
 });
 app.post('/otp',(req, res)=>{
-  try{
-    const token = req.headers.authorization.split(" ")[1];
-    const decoded = jwt.verify(token, key);
-    req.userData = decoded;
-    console.log(decoded)
-    res.status(200).json(
-      {
-        "message":"OTP success",
-        "status":"success"
-      }
-    );
-  }
-  catch{
-    (err)=>{
-      console.log(err);
-      res.status(500).json(
+  const validated = validate.validateOtp(req.body.otp);
+  if(validated){
+    try{
+      const token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, key);
+      req.userData = decoded;
+      console.log(decoded)
+      res.status(200).json(
         {
-          "message":"OTP failed",
-          "status":"failed"
+          "message":"OTP success",
+          "status":"success"
         }
       );
     }
+    catch{
+      (err)=>{
+        console.log(err);
+        res.status(500).json(
+          {
+            "message":"OTP failed",
+            "status":"failed"
+          }
+        );
+      }
+    }
   }
+  else{
+     
+    res.status(200).json({message:"not successful"});
+  }
+  
 });
 app.post('/otpResend',(req, res)=>{
-  
-User.find({ email: req.body.email })
+  const validated = validate.validateOtp(req.body);
+  if(validated){
+    User.find({ email: req.body.email })
 .exec()
 .then(user => {
   if (user.length < 1) {
@@ -260,6 +309,11 @@ res.status(200).json({
   }
 
 );
+  }
+  else{
+    res.status(200).json({message:"not successful"});
+  }
+
 });
 //app.post("/otp_trial",otpDB.Otp_save(1254,"3dvdtdf6s"));
   module.exports = app;
