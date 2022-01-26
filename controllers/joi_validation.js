@@ -1,5 +1,22 @@
 const Joi = require('joi');
-exports.validateSignUp = (mail, password_sent) => {
+exports.validateSignUp = (mail, password_sent, next) => {
+    const schema = Joi.object({      
+        email: Joi.string()
+            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
+        password: Joi.string()
+            .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required()
+    }).with('email', 'password');
+    
+    try {
+        const value =  schema.validateAsync({ email: mail, password: password_sent  });
+        //return value;
+        next();
+    }
+    catch (err) { 
+        return err;
+    }
+}
+exports.validateSignIn = (mail, password_sent, next) => {
     const schema = Joi.object({      
         email: Joi.string()
             .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
@@ -15,23 +32,7 @@ exports.validateSignUp = (mail, password_sent) => {
         return err;
     }
 }
-exports.validateSignIn = (mail, password_sent) => {
-    const schema = Joi.object({      
-        email: Joi.string()
-            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
-        password: Joi.string()
-            .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required()
-    }).with('email', 'password');
-    
-    try {
-        const value =  schema.validateAsync({ email: mail, password: password_sent  });
-        return value;
-    }
-    catch (err) { 
-        return err;
-    }
-}
-exports.validateForgot = (mail) => {
+exports.validateForgot = (mail, next) => {
     const schema = Joi.object({      
         email: Joi.string()
             .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required()
@@ -45,7 +46,7 @@ exports.validateForgot = (mail) => {
         return err;
     }
 }
-exports.validateReset = (password1, password2) => {
+exports.validateReset = (password1, password2, next) => {
     const schema = Joi.object({      
         password: Joi.string()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
@@ -61,7 +62,7 @@ exports.validateReset = (password1, password2) => {
         return err;
     }
 }
-exports.validateOtp = (otp_sent) => {
+exports.validateOtp = (otp_sent, next) => {
     const schema = Joi.object({  
           
         otp:  Joi.string()

@@ -9,6 +9,7 @@ const passport = require("passport");
 const user_auth = require("../controllers/user_authentication");
 const otpDB = require("../controllers/otp");
 const otpGenerator = require("otp-generator");
+const joi_validation = require("../controllers/joi_validation");
 
 const key = "dZ9rcjxB2X45MXobcgPNEXgmPjHpfsVi";
 app.post('/signup', (req, res, next) => {
