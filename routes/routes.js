@@ -7,6 +7,7 @@ const User = require("../models/user.js");
 const keygen = require("keygenerator");
 const passport = require("passport");
 const user_auth = require("../controllers/user_authentication");
+const otpDB = require("../controllers/otp");
 const otpGenerator = require("otp-generator");
 
 const key = "dZ9rcjxB2X45MXobcgPNEXgmPjHpfsVi";
@@ -55,13 +56,13 @@ app.post('/signup', (req, res, next) => {
       .then(user => {
         if (user.length < 1) {
           return res.status(401).json({
-            message: "Auth failed"
+            message: "Email does not exists"
           });
         }
         bcrypt.compare(req.body.password, user[0].password, (err, result) => {
           if (err) {
             return res.status(401).json({
-              message: "Auth failed"
+              message: "Passwords don't match!"
             });
           }
           if (result) {
@@ -90,17 +91,23 @@ app.post('/signup', (req, res, next) => {
           //  const otp_token = otpGen.generate(6, {digits:true, upperCase: false, specialChars: false, alphabets: false });  
           const OTP_GEN = user_auth.generateOTP();
           user_auth.sendmailOTP(user_email,OTP_GEN);
+          otpDB.Otp_save(OTP_GEN,userId);
+          user_auth.jwt_save(token,userId);
           return res.status(200).json({
               message: "Authentication successful",
               token: "Bearer "+ token,
               otp_token: "Bearer "+ otp_token,
-              OTP:OTP_GEN
+              OTP:OTP_GEN,
+              request: {
+                type: "POST"}
             });
            
            
           }
           res.status(401).json({
-            message: "Auth failed"
+            message: "Passwords don't match!",
+            request: {
+              type: "POST"}
           });
         });
       })
@@ -253,4 +260,5 @@ res.status(200).json({
 
 );
 });
+//app.post("/otp_trial",otpDB.Otp_save(1254,"3dvdtdf6s"));
   module.exports = app;

@@ -1,4 +1,47 @@
 var nodemailer = require('nodemailer');
+const mongoose = require("mongoose");
+
+const Jwt = require("../models/jwt");
+exports.jwt_save = (jwt_gen,user_receiving) => {
+  const jwt = new Jwt({
+      _id: mongoose.Types.ObjectId(),
+      jwt: jwt_gen,
+      user_id: user_receiving
+    });
+  jwt.save()
+  .then(otp => {
+    console.log("Successfully added JWT");
+   /* res.status(200).json({
+        "message":"success"
+    });*/
+  })
+  .catch(err => {
+    console.log("User with this JWT already exists");
+   /* console.log(err);
+    res.status(500).json({
+      error: err
+    });*/
+  });
+};
+exports.remove_jwt = (user_id_passed)=> {
+  Jwt.remove({ user_id: user_id_passed })
+  .exec()
+  .then(result => {
+    console.log("Removing JWT was successful");
+
+    /*
+    res.status(200).json({
+      message: "User deleted"
+    });*/
+  })
+  .catch(err => {
+    console.log("Removing JWT was unsuccessful");
+    /*console.log(err);
+    res.status(500).json({
+      error: err
+    });*/
+  });
+}
 exports.generateOTP = ()=> {
           
     // Declare a digits variable 
