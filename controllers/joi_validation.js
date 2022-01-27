@@ -7,15 +7,22 @@ exports.validateSignUp = (mail, password_sent) => {
             .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required()
     }).with('email', 'password');
  
-    try {
-        const value =  schema.validateAsync({ email: mail, password: password_sent  });
-       return value;
-        
-    }
-    catch (err) { 
-      // return err;
-        
-    }
+ 
+        schema.validateAsync({ email: mail, password: password_sent  })
+                             .then((result)=>{
+                                console.log(`Then Message:${result}`);
+                               // return result;
+                             })
+                             .catch(
+                                 (err)=>{
+                                    console.log(err.details[0].message);    
+                                   // return err.details[0].message;
+                                 }
+                             );
+      //  console.log(`Message:${value}`);
+   
+    
+   
 }
 exports.validateSignIn = (mail, password_sent) => {
     const schema = Joi.object({      
@@ -25,13 +32,17 @@ exports.validateSignIn = (mail, password_sent) => {
             .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required()
     }).with('email', 'password');
     
-    try {
-        const value =  schema.validateAsync({ email: mail, password: password_sent  });
-        return value;
-    }
-    catch (err) { 
-        return err;
-    }
+    const value =  schema.validateAsync({ email: mail, password: password_sent  })
+    .then((result)=>{
+      console.log(`Then Message:${result.email}`);
+      
+   })
+   .catch(
+       (err)=>{
+          console.log(err.details[0].message);    
+          return result
+       }
+   );
 }
 exports.validateForgot = (mail) => {
     const schema = Joi.object({      

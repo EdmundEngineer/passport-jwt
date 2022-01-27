@@ -1,5 +1,5 @@
 const validate = require("./controllers/joi_validation");
-const validation = validate.validateSignUp("edmundopiyo@gmail.com","password");
+const validation = validate.validateSignUp("edmundopiyogmail.com","password");
 
 if(validation){
     console.log(validate.validateSignIn("edmundopiyo@gmail.com","password"));
@@ -8,6 +8,6 @@ if(validation){
     console.log(validate.validateOtp("2203"));
 }
 else{
-    console.log(validation);
+   // console.log(validation);
 }
 

@@ -13,7 +13,7 @@ const validate = require("../controllers/joi_validation");
 
 const key = "dZ9rcjxB2X45MXobcgPNEXgmPjHpfsVi";
 app.post('/signup', (req, res) => {
-    
+ 
     const payload = {
      "email":"",
      "password":""
@@ -22,6 +22,7 @@ app.post('/signup', (req, res) => {
     payload.password = req.body.password;
    
     const validated = validate.validateSignUp(req.body.email, req.body.password);
+    //console.log(validated);
     if(validated){
       User.find({ email: req.body.email })
       .exec()
@@ -63,7 +64,7 @@ app.post('/signup', (req, res) => {
     }
     else{
       // 
-      res.status(200).json({message:"not successful"});
+      res.status(400).json({message:validated});
     }
 
     
