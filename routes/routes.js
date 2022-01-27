@@ -23,7 +23,11 @@ app.post('/signup', (req, res) => {
    
     const validated = validate.validateSignUp(req.body.email, req.body.password);
     //console.log(validated);
-    if(validated){
+    /*if(validated){ }
+    else{
+      // 
+      res.status(400).json({message:validated});
+    }*/
       User.find({ email: req.body.email })
       .exec()
       .then(user => {
@@ -61,17 +65,17 @@ app.post('/signup', (req, res) => {
           });
         }
       });
-    }
-    else{
-      // 
-      res.status(400).json({message:validated});
-    }
+   
 
     
   });
   app.post('/signin',(req, res, next) => {
     const validated = validate.validateSignIn(req.body.email, req.body.password);
-    if(validated){
+     /*if(validated){ }
+    else{
+      // 
+      res.status(400).json({message:validated});
+    }*/
     User.find({ email: req.body.email })
       .exec()
       .then(user => {
@@ -112,7 +116,7 @@ app.post('/signup', (req, res) => {
           //  const otp_token = otpGen.generate(6, {digits:true, upperCase: false, specialChars: false, alphabets: false });  
           const OTP_GEN = user_auth.generateOTP();
           user_auth.sendmailOTP(user_email,OTP_GEN);
-          otpDB.Otp_save(OTP_GEN,userId);
+          otpDB.Otp_save(OTP_GEN,user_email);
           user_auth.jwt_save(token,userId);
           return res.status(200).json({
               message: "Authentication successful",
@@ -138,18 +142,18 @@ app.post('/signup', (req, res) => {
           error: err
         });
       });
-    }
-    else{
-       
-      res.status(200).json({message:"not successful"});
-    }
+  
   });
   app.get('/protected',passport.authenticate("jwt", {session: false}),(req, res) =>{
     res.send("Accessed Protected route");
 });
 app.post('/forgot-password',(req, res)=>{
   const validated = validate.validateForgot(req.body.email);
-  if(validated){
+   /*if(validated){ }
+    else{
+      // 
+      res.status(400).json({message:validated});
+    }*/
      //find user
   User.find({ email: req.body.email })
   .exec()
@@ -184,16 +188,16 @@ app.post('/forgot-password',(req, res)=>{
       error: err
     });
   });
-  }
-  else{
-     
-    res.status(200).json({message:"not successful"});
-  }
+  
  
 });
 app.post('/reset-password',(req, res)=>{
   const validated = validate.validateReset(req.body.password,req.body.confirm_password);
-  if(validated){
+   /*if(validated){ }
+    else{
+      // 
+      res.status(400).json({message:validated});
+    }*/
     try{
       const token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, key);
@@ -229,16 +233,14 @@ app.post('/reset-password',(req, res)=>{
         console.log(err);
       }
      }
-  }
-  else{
-     
-    res.status(200).json({message:"not successful"});
-  }
+ 
  
 
 
 });
-app.post('/otp',(req, res)=>{
+app.post('/otp',
+//otpDB.otp_remove    
+(req, res) =>{
   const validated = validate.validateOtp(req.body.otp);
   if(validated){
     try{
@@ -269,17 +271,21 @@ app.post('/otp',(req, res)=>{
      
     res.status(200).json({message:"not successful"});
   }
-  
-});
+}
+);
 app.post('/otpResend',(req, res)=>{
-  const validated = validate.validateOtp(req.body);
-  if(validated){
+ // const validated = validate.validateOtp(req.body);
+   /*if(validated){ }
+    else{
+      // 
+      res.status(400).json({message:validated});
+    }*/
     User.find({ email: req.body.email })
 .exec()
 .then(user => {
   if (user.length < 1) {
     return res.status(401).json({
-      message: "Auth failed"
+      message: "Email does not exists"
     });
   }
   const user_email = user[0].email;
@@ -292,6 +298,7 @@ app.post('/otpResend',(req, res)=>{
 }
 const otp_token = jwt.sign(payload, secret, {expiresIn: '1m'});
 user_auth.sendmailOTP(user_email,OTP_GEN);
+otpDB.Otp_save(OTP_GEN,user_email);
 res.status(200).json({
   message: "OTP sent successful",
   otp_token: "Bearer "+ otp_token,
@@ -310,10 +317,7 @@ res.status(200).json({
   }
 
 );
-  }
-  else{
-    res.status(200).json({message:"not successful"});
-  }
+
 
 });
 //app.post("/otp_trial",otpDB.Otp_save(1254,"3dvdtdf6s"));
