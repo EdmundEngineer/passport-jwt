@@ -65,7 +65,7 @@ exports.sendmailOTP = (mail, OTP) => {
       var mailOptions = {
         from: 'edmundopiyo@gmail.com',
         to: mail,
-        subject: 'Email Verification',
+        subject: 'PAYLEND OTP',
         text: message
       };
       

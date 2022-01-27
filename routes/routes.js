@@ -50,9 +50,24 @@ app.post('/signup', (req, res) => {
               user
                 .save()
                 .then(result => {
-                  console.log(result);
+                 // console.log(result);
+                 const otp_token = jwt.sign(
+                  {
+                    email: req.body.email
+                  },
+                  key,
+                  {
+                    expiresIn: "15m"
+                  }
+                );
+                  const OTP_GEN = user_auth.generateOTP();
+                  user_auth.sendmailOTP( req.body.email,OTP_GEN);
+                 // otpDB.Otp_save(OTP_GEN, req.body.email);
+                //  user_auth.jwt_save(token, req.body.email);
                   res.status(201).json({
-                    message: "User created"
+                    message: "User created",
+                    status:"Success",
+                    otp_token:"Bearer "+ otp_token
                   });
                 })
                 .catch(err => {
@@ -241,8 +256,12 @@ app.post('/reset-password',(req, res)=>{
 app.post('/otp',
 //otpDB.otp_remove    
 (req, res) =>{
-  const validated = validate.validateOtp(req.body.otp);
-  if(validated){
+  /*const validated = validate.validateOtp(req.body.otp);
+  if(validated){  }
+  else{
+     
+    res.status(200).json({message:"not successful"});
+  }*/
     try{
       const token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, key);
@@ -266,11 +285,7 @@ app.post('/otp',
         );
       }
     }
-  }
-  else{
-     
-    res.status(200).json({message:"not successful"});
-  }
+
 }
 );
 app.post('/otpResend',(req, res)=>{
