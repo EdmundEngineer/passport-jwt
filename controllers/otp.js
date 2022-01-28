@@ -9,14 +9,14 @@ exports.Otp_save = (otp_generated,user_receiving) => {
         user_id: user_receiving
       });
     otp.save()
-    .then(otp => {
+    .then(result => {
      /* res.status(200).json({
           "message":"success"
       });*/
       console.log("Successfully added OTP");
     })
     .catch(err => {
-      console.log("User with this OTP already exists");
+      console.log("Adding OTP unsuccessful!!");
     /*  res.status(500).json({
         error: err
       });*/

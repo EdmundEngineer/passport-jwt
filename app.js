@@ -5,10 +5,10 @@ const mongoose = require("mongoose");
 const http = require('http');
 const port = process.env.PORT || 3000;
 const passport = require("passport");
-var csrf = require('csurf');
+/*var csrf = require('csurf');
 const csrfProtection = csrf({
   cookie: true
-});
+});*/
 
 require("./config/passport");
 
@@ -21,7 +21,7 @@ mongoose.connection.on('error', error => console.log(error) );
 
   mongoose.Promise = global.Promise;
 
-  app.use(csrfProtection);
+  //app.use(csrf());
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
   

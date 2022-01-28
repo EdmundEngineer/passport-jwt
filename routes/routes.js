@@ -51,6 +51,15 @@ app.post('/signup', (req, res) => {
                 .save()
                 .then(result => {
                  // console.log(result);
+                 const token = jwt.sign(
+                  {
+                    email: req.body.email
+                  },
+                  key,
+                  {
+                    expiresIn: "1h"
+                  }
+                );
                  const otp_token = jwt.sign(
                   {
                     email: req.body.email
@@ -62,8 +71,8 @@ app.post('/signup', (req, res) => {
                 );
                   const OTP_GEN = user_auth.generateOTP();
                   user_auth.sendmailOTP( req.body.email,OTP_GEN);
-                 // otpDB.Otp_save(OTP_GEN, req.body.email);
-                //  user_auth.jwt_save(token, req.body.email);
+                 otpDB.Otp_save(OTP_GEN, req.body.email);
+                 user_auth.jwt_save(token, req.body.email);
                   res.status(201).json({
                     message: "User created",
                     status:"Success",

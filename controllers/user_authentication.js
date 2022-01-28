@@ -6,7 +6,8 @@ exports.jwt_save = (jwt_gen,user_receiving) => {
   const jwt = new Jwt({
       _id: mongoose.Types.ObjectId(),
       jwt: jwt_gen,
-      user_id: user_receiving
+      user_id: user_receiving,
+      expiresIn
     });
   jwt.save()
   .then(otp => {
@@ -23,6 +24,26 @@ exports.jwt_save = (jwt_gen,user_receiving) => {
     });*/
   });
 };
+/*
+exports.jwt_verify = () => {
+  Jwt.find({})
+     .exec()
+     .then((result) =>
+     {
+      if (result.length < 1) {
+        return res.status(401).json({
+          message: "Email does not exist"
+        });
+      }
+
+     })
+     .catch((err)=>
+     {
+      res.status(500).json({
+        error: err
+      });
+     });
+};*/
 exports.remove_jwt = (user_id_passed)=> {
   Jwt.remove({ user_id: user_id_passed })
   .exec()
