@@ -5,6 +5,11 @@ const mongoose = require("mongoose");
 const http = require('http');
 const port = process.env.PORT || 3000;
 const passport = require("passport");
+var csrf = require('csurf');
+const csrfProtection = csrf({
+  cookie: true
+});
+
 require("./config/passport");
 
 mongoose.connect('mongodb://127.0.0.1:27017/paylend_2_0', {
@@ -15,6 +20,8 @@ mongoose.connection.once('open', ()=>{ console.log("Mongodb connected successful
 mongoose.connection.on('error', error => console.log(error) );
 
   mongoose.Promise = global.Promise;
+
+  app.use(csrfProtection);
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
   

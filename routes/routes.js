@@ -335,5 +335,14 @@ res.status(200).json({
 
 
 });
+app.get('/jwt',(req, res)=>{
+  const token = jwt.sign({ user: 'johndoe' }, key);
+  res.cookie('token', token, { httpOnly: true });
+  res.json({ token });
+  console.log("JWT access ");
+});
+app.get('/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
 //app.post("/otp_trial",otpDB.Otp_save(1254,"3dvdtdf6s"));
   module.exports = app;
